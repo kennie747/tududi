@@ -5,6 +5,11 @@ const providerConfig = require('./providerConfig');
 const auditService = require('./auditService');
 const { User } = require('../../models');
 
+// After linking an SSO account, return to the Profile page's OIDC/SSO tab.
+// The SPA has no /profile/security route (tabs are /profile?section=<id>),
+// so the old target rendered a 404 even though the link had succeeded.
+const LINK_SUCCESS_REDIRECT = '/profile?section=oidc&success=linked';
+
 async function listProviders(req, res) {
     try {
         const providers = providerConfig.getAllProviders();
@@ -74,7 +79,7 @@ async function handleCallback(req, res) {
 
             await auditService.logOidcLinked(linkUser.id, slug, req);
 
-            return res.redirect('/profile/security?success=linked');
+            return res.redirect(LINK_SUCCESS_REDIRECT);
         }
 
         const { user, isNewUser } = await provisioningService.provisionUser(
@@ -220,4 +225,5 @@ module.exports = {
     initiateLink,
     unlinkIdentity,
     getUserIdentities,
+    LINK_SUCCESS_REDIRECT,
 };
